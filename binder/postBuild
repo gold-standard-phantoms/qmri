@@ -1,0 +1,8 @@
+#!/bin/bash
+# Post-build script for Binder
+
+# Enable JupyterLab extensions
+jupyter labextension enable
+
+# Verify qmri installation
+python -c "from qmri.dro import dwi; print('qmri-dro installed successfully')"

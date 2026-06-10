@@ -1,0 +1,137 @@
+site_name: qmri
+site_description: Pure MRI signal models, fitting algorithms, and error propagation
+site_url: https://gold-standard-phantoms.github.io/qmri
+repo_url: https://github.com/gold-standard-phantoms/qmri
+repo_name: gold-standard-phantoms/qmri
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+
+plugins:
+  - search
+  - mkdocstrings:
+      enable_inventory: true
+      handlers:
+        python:
+          paths: [packages/qmri/src, packages/qmri-io/src, packages/qmri-pipelines/src, packages/qmri-cli/src, packages/qmri-viz/src, packages/qmri-dro/src]
+          options:
+            docstring_style: google
+            docstring_section_style: table
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            heading_level: 2
+            members_order: source
+            merge_init_into_class: true
+            separate_signature: true
+            show_signature_annotations: true
+            signature_crossrefs: true
+          inventories:
+            - https://docs.python.org/3/objects.inv
+            - https://numpy.org/doc/stable/objects.inv
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - codehilite
+  - md_in_html
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - tables
+  - toc:
+      permalink: true
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Quick Start: getting-started/quickstart.md
+  - User Guide:
+      - Diffusion: user-guide/diffusion.md
+      - Relaxometry: user-guide/relaxometry.md
+      - Perfusion: user-guide/perfusion.md
+      - Thermometry: user-guide/thermometry.md
+      - Digital Reference Objects: user-guide/dro.md
+  - Tutorials:
+      - Overview: tutorials/index.md
+  - Equations:
+      - Diffusion Models: equations/diffusion.md
+      - Relaxometry Models: equations/relaxometry.md
+      - Perfusion Models: equations/perfusion.md
+      - Thermometry Models: equations/thermometry.md
+  - API Reference:
+      - qmri.diffusion: api/diffusion.md
+      - qmri.relaxometry: api/relaxometry.md
+      - qmri.perfusion: api/perfusion.md
+      - qmri.thermometry: api/thermometry.md
+      - qmri.fitting: api/fitting.md
+      - qmri.errors: api/errors.md
+      - qmri.constants: api/constants.md
+      - qmri.dro: api/dro.md
+      - qmri.pipelines: api/pipelines.md
+  - CLI Reference: cli.md
+  - Contributing:
+      - Overview: contributing/index.md
+      - Development Setup: contributing/setup.md
+      - Code Style Guide: contributing/style-guide.md
+      - Testing Guide: contributing/testing.md
+      - Adding New Modules: contributing/adding-modules.md
+      - Architecture: contributing/architecture.md
+  - Changelog: changelog.md
+
+watch:
+  - docs
+  - packages/qmri/src
+  - packages/qmri-io/src
+  - packages/qmri-pipelines/src
+  - packages/qmri-cli/src
+  - packages/qmri-viz/src
+  - packages/qmri-dro/src
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/gold-standard-phantoms/qmri

@@ -1,0 +1,115 @@
+[project]
+name = "qmri-workspace"
+version = "0.0.0"
+description = "Workspace for qmri packages - quantitative MRI signal models and tools"
+requires-python = ">=3.10"
+readme = "README.md"
+license = "MIT"
+
+[dependency-groups]
+dev = [
+    "qmri",
+    "qmri-io",
+    "qmri-pipelines",
+    "qmri-cli",
+    "qmri-viz",
+    "qmri-dro",
+    "pytest>=8.0",
+    "pytest-cov>=4.0",
+    "mypy>=1.8",
+    "ruff>=0.4",
+    "mkdocs>=1.5",
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.24",
+    "scipy-stubs>=1.15",
+    "scipy>=1.15.3",
+    "jupyterlab>=4.5.3",
+]
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[tool.uv.sources]
+qmri = { workspace = true }
+qmri-io = { workspace = true }
+qmri-pipelines = { workspace = true }
+qmri-cli = { workspace = true }
+qmri-viz = { workspace = true }
+qmri-dro = { workspace = true }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra -q --strict-markers"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+# qmri is a PEP 420 namespace package spread across the workspace members.
+# `packages = ["qmri"]` would only check the first portion found, so list
+# every member's src directory explicitly; mypy_path makes cross-portion
+# imports resolve.
+namespace_packages = true
+explicit_package_bases = true
+files = [
+    "packages/qmri/src",
+    "packages/qmri-io/src",
+    "packages/qmri-pipelines/src",
+    "packages/qmri-cli/src",
+    "packages/qmri-viz/src",
+    "packages/qmri-dro/src",
+]
+mypy_path = [
+    "packages/qmri/src",
+    "packages/qmri-io/src",
+    "packages/qmri-pipelines/src",
+    "packages/qmri-cli/src",
+    "packages/qmri-viz/src",
+    "packages/qmri-dro/src",
+]
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "F",      # pyflakes
+    "I",      # isort
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "SIM",    # flake8-simplify
+    "TCH",    # flake8-type-checking
+    "D",      # pydocstyle
+    "NPY",    # numpy-specific rules
+]
+ignore = [
+    "D100",   # Missing docstring in public module
+    "D104",   # Missing docstring in public package
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+# Example notebooks are illustrative: undocumented helper functions, long
+# output-comment lines, terse maths variable names and non-strict zip() are
+# all acceptable in demonstrative code.
+"examples/**/*.ipynb" = ["D103", "E501", "E741", "B905"]
+
+[tool.coverage.run]
+source = ["packages/*/src"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]

@@ -1,0 +1,58 @@
+[project]
+name = "qmri"
+version = "0.1.0"
+description = "Pure MRI signal models, fitting algorithms, and error propagation for quantitative MRI"
+requires-python = ">=3.10"
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "Gold Standard Phantoms", email = "tom.hampshire@goldstandardphantoms.com" }]
+keywords = [
+    "mri",
+    "qmri",
+    "quantitative-mri",
+    "signal-processing",
+    "diffusion",
+    "relaxometry",
+    "perfusion",
+    "asl",
+    "t1-mapping",
+    "t2-mapping",
+    "adc",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Typing :: Typed",
+]
+
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+]
+
+[project.urls]
+Homepage = "https://github.com/gold-standard-phantoms/qmri"
+Documentation = "https://qmri.readthedocs.io"
+Repository = "https://github.com/gold-standard-phantoms/qmri"
+Changelog = "https://github.com/gold-standard-phantoms/qmri/blob/main/CHANGELOG.md"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/qmri"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/README.md",
+]
