@@ -23,7 +23,6 @@ Example:
     ```
 """
 
-__version__ = "0.1.0"
 __author__ = "Gold Standard Phantoms"
 
 from qmri.dro._types import (
@@ -34,7 +33,6 @@ from qmri.dro._types import (
 )
 
 __all__ = [
-    "__version__",
     "ASLPhantom",
     "DWIPhantom",
     "GroundTruth",

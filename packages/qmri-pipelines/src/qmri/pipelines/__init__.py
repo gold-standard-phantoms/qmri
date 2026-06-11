@@ -26,8 +26,6 @@ from qmri.pipelines.thermometry.multiecho import (
 )
 from qmri.pipelines.transfer.mtr import MTRReport, run_mtr
 
-__version__ = "0.1.0"
-
 __all__ = [
     "ASLQuantificationReport",
     "MTRReport",
