@@ -33,6 +33,7 @@ from qmri.io import (
     load_sidecar,
     save_nifti,
 )
+from qmri.pipelines._common import strip_nifti_suffix
 from qmri.thermometry.multiecho import (
     DfInitMethod,
     RegionAnalysisMethod,
@@ -94,16 +95,6 @@ class MultiEchoThermometryReport:
             "echo_times": self.echo_times,
             "report": [region.to_dict() for region in self.regions],
         }
-
-
-def _strip_nifti_suffix(path: Path) -> Path:
-    """Return ``path`` with a trailing ``.nii`` or ``.nii.gz`` suffix removed."""
-    name = path.name
-    if name.endswith(".nii.gz"):
-        return path.with_name(name[:-7])
-    if name.endswith(".nii"):
-        return path.with_name(name[:-4])
-    return path
 
 
 def _load_echo_times(path: Path) -> NDArray[np.float64]:
@@ -289,7 +280,7 @@ def run_multiecho_thermometry(
             Path(output_dir) if output_dir is not None else multiecho_paths[0].parent
         )
         out_dir.mkdir(parents=True, exist_ok=True)
-        prefix = output_prefix or _strip_nifti_suffix(multiecho_paths[0]).stem
+        prefix = output_prefix or strip_nifti_suffix(multiecho_paths[0]).stem
         output_path = out_dir / f"{prefix}_temperature_map.nii.gz"
         save_nifti(
             temperature_map,
