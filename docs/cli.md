@@ -291,6 +291,123 @@ qmri thermometry multiecho block1.nii.gz block2.nii.gz \
 
 ---
 
+## Perfusion Commands
+
+### `qmri perfusion asl`
+
+Quantify cerebral blood flow (CBF) from an arterial spin labelling (ASL) image
+using the White Paper consensus equations. This command wraps the
+[`qmri.pipelines.perfusion`](api/pipelines.md) pipeline.
+
+```bash
+qmri perfusion asl ASL_NIFTI [OPTIONS]
+```
+
+#### Arguments
+
+| Argument | Description |
+|----------|-------------|
+| `ASL_NIFTI` | A 4D ASL NIfTI containing control/label (and optionally M0) volumes. |
+
+#### Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--asl-context` | STRING | From `*_aslcontext.tsv` or sidecar | Comma-separated per-volume labels, e.g. `m0scan,control,label`. |
+| `--m0` | PATH | From `m0scan` volumes | Separate M0 NIfTI. |
+| `--label-type` | `pcasl` / `casl` / `pasl` | From sidecar | ASL labelling type. |
+| `--post-label-delay` | FLOAT | From sidecar | Post-label delay (s) for pCASL/CASL, or inversion time (s) for PASL. |
+| `--label-duration` | FLOAT | From sidecar | Label duration (s); pCASL/CASL only. |
+| `--bolus-duration` | FLOAT | From sidecar | Bolus duration TI1 (s); PASL only. |
+| `--label-efficiency` | FLOAT | 0.85 (pCASL/CASL), 0.98 (PASL) | Labelling efficiency. |
+| `--t1-blood` | FLOAT | 1.35 s at 1.5 T, 1.65 s otherwise | T1 of arterial blood (s). |
+| `--partition-coefficient` | FLOAT | 0.9 | Blood-brain partition coefficient (ml/g). |
+| `-b`, `--field-strength` | FLOAT | None | Field strength (T), used to pick a default T1 of blood. |
+| `-o`, `--output-dir` | PATH | Directory of the ASL image | Output directory. |
+| `--output-prefix` | STRING | Stem of the ASL image | Output filename prefix. |
+
+#### Parameter Resolution
+
+Labelling parameters are resolved with the precedence
+**command-line option > JSON sidecar > default**. Sidecar keys follow BIDS
+(`ArterialSpinLabelingType`, `PostLabelingDelay`, `LabelingDuration`,
+`BolusCutOffDelayTime`, `LabelingEfficiency`, `BloodBrainPartitionCoefficient`,
+`T1ArterialBlood`, `MagneticFieldStrength`). The per-volume context is read from
+a sibling `*_aslcontext.tsv` file or the sidecar when `--asl-context` is omitted.
+
+#### Output
+
+- A CBF map NIfTI (ml/100g/min) co-located with the input.
+- A JSON report with the resolved quantification parameters and summary statistics.
+
+#### Examples
+
+```bash
+# pCASL with explicit parameters and context
+qmri perfusion asl asl.nii.gz --label-type pcasl \
+    --post-label-delay 1.8 --label-duration 1.8 \
+    --asl-context m0scan,control,label -o results/
+
+# Parameters and context read from the BIDS sidecar / aslcontext.tsv
+qmri perfusion asl sub-01_asl.nii.gz -o results/
+
+# PASL with a separate M0 image
+qmri perfusion asl asl.nii.gz --m0 m0.nii.gz --label-type pasl \
+    --post-label-delay 1.8 --bolus-duration 0.8 -o results/
+```
+
+---
+
+## Transfer Commands
+
+### `qmri transfer mtr`
+
+Calculate a magnetisation transfer ratio (MTR) map from images acquired with and
+without bound-pool saturation. This command wraps the
+[`qmri.pipelines.transfer`](api/pipelines.md) pipeline.
+
+```bash
+qmri transfer mtr SATURATED [OPTIONS]
+```
+
+#### Arguments
+
+| Argument | Description |
+|----------|-------------|
+| `SATURATED` | The image acquired with bound-pool saturation. In combined mode, a 4D file whose last axis holds two volumes ordered `[unsaturated, saturated]`. |
+
+#### Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `-u`, `--unsaturated` | PATH | None | Image without bound-pool saturation. Omit to use combined mode. |
+| `-o`, `--output-dir` | PATH | Directory of the `SATURATED` image | Output directory. |
+| `--output-prefix` | STRING | Stem of the `SATURATED` image | Output filename prefix. |
+
+#### Input Modes
+
+- **Separate** (`--unsaturated` given): two individual NIfTI images of the same
+  shape and affine.
+- **Combined** (`--unsaturated` omitted): a single 4D NIfTI whose last axis holds
+  two volumes ordered `[unsaturated, saturated]`.
+
+#### Output
+
+- An MTR map NIfTI in percentage units (pu), co-located with the input.
+- A JSON report with summary statistics over the valid voxels.
+
+#### Examples
+
+```bash
+# Separate saturated and unsaturated images
+qmri transfer mtr sat.nii.gz -u nosat.nii.gz -o results/
+
+# A single 4D file ordered [unsaturated, saturated]
+qmri transfer mtr mt.nii.gz -o results/
+```
+
+---
+
 ## Common Usage Patterns
 
 ### Processing with Masks
