@@ -13,3 +13,19 @@ Provided by the `qmri-pipelines` package.
       members:
         - run_multiecho_thermometry
         - MultiEchoThermometryReport
+
+## ASL Perfusion Quantification
+
+::: qmri.pipelines.perfusion.asl
+    options:
+      members:
+        - run_asl_quantification
+        - ASLQuantificationReport
+
+## Magnetisation Transfer Ratio
+
+::: qmri.pipelines.transfer.mtr
+    options:
+      members:
+        - run_mtr
+        - MTRReport
