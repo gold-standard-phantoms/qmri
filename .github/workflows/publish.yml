@@ -1,0 +1,51 @@
+name: publish
+
+# Publish all qmri workspace packages to PyPI when a GitHub release is
+# published. Versions are derived from the release's git tag by setuptools_scm,
+# so create a release from a tag such as `v0.1.0`.
+#
+# Authentication uses PyPI Trusted Publishing (OIDC) - no API tokens. Each
+# package must be registered as a trusted publisher on PyPI with:
+#   owner: gold-standard-phantoms, repository: qmri,
+#   workflow: publish.yml, environment: pypi
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  pypi:
+    name: Publish ${{ matrix.package }}
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write # required for trusted publishing (OIDC)
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - qmri
+          - qmri-io
+          - qmri-pipelines
+          - qmri-cli
+          - qmri-viz
+          - qmri-dro
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history + tags so setuptools_scm can resolve the version
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Build ${{ matrix.package }}
+        run: uv build --package ${{ matrix.package }} --out-dir dist
+
+      - name: Publish ${{ matrix.package }} to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
