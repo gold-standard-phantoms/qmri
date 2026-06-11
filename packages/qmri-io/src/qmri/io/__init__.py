@@ -31,8 +31,6 @@ from qmri.io.nifti import (
     save_nifti,
 )
 
-__version__ = "0.1.0"
-
 __all__: list[str] = [
     # NIFTI I/O
     "NiftiHeader",

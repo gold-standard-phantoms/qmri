@@ -40,8 +40,6 @@ Example:
     ```
 """
 
-__version__ = "0.1.0"
-
 from qmri.viz.colormaps import (
     get_adc_cmap,
     get_t1_cmap,
