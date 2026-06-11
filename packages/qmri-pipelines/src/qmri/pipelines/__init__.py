@@ -16,14 +16,23 @@ Example:
     ```
 """
 
+from qmri.pipelines.perfusion.asl import (
+    ASLQuantificationReport,
+    run_asl_quantification,
+)
 from qmri.pipelines.thermometry.multiecho import (
     MultiEchoThermometryReport,
     run_multiecho_thermometry,
 )
+from qmri.pipelines.transfer.mtr import MTRReport, run_mtr
 
 __version__ = "0.1.0"
 
 __all__ = [
+    "ASLQuantificationReport",
+    "MTRReport",
     "MultiEchoThermometryReport",
+    "run_asl_quantification",
+    "run_mtr",
     "run_multiecho_thermometry",
 ]
