@@ -9,8 +9,10 @@ from pathlib import Path
 import click
 from qmri.cli._utils import console, error_console
 from qmri.cli.commands.diffusion import diffusion
+from qmri.cli.commands.perfusion import perfusion
 from qmri.cli.commands.relaxometry import relaxometry
 from qmri.cli.commands.thermometry import thermometry
+from qmri.cli.commands.transfer import transfer
 
 __all__ = ["cli"]
 
@@ -81,6 +83,13 @@ def cli(
         qmri thermometry multiecho echoes.nii.gz -e echo_times.txt \
             -s labels.nii.gz -o results/
 
+        # Quantify CBF from ASL data
+        qmri perfusion asl asl.nii.gz --label-type pcasl \
+            --post-label-delay 1.8 --label-duration 1.8 -o results/
+
+        # Calculate a magnetisation transfer ratio map
+        qmri transfer mtr sat.nii.gz -u nosat.nii.gz -o results/
+
     For more information on a specific command, use:
         qmri <command> --help
     """
@@ -108,8 +117,10 @@ def cli(
 
 # Register command groups
 cli.add_command(diffusion)
+cli.add_command(perfusion)
 cli.add_command(relaxometry)
 cli.add_command(thermometry)
+cli.add_command(transfer)
 
 
 @cli.command(name="info")
@@ -154,8 +165,10 @@ def info(ctx: click.Context) -> None:
     console.print()
     console.print("[bold]Available command groups:[/]")
     console.print("  diffusion    - Diffusion imaging analysis (ADC, DTI)")
+    console.print("  perfusion    - ASL perfusion quantification (CBF)")
     console.print("  relaxometry  - Relaxation time mapping (T1, T2)")
     console.print("  thermometry  - MR temperature mapping (multi-echo)")
+    console.print("  transfer     - Magnetisation transfer ratio (MTR)")
     console.print()
     console.print("Use 'qmri <command> --help' for more information on a command.")
 
