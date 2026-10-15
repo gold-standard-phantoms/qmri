@@ -1,0 +1,146 @@
+# CI for the qmri uv workspace (six packages under packages/*, one shared tests/ tree at the root,
+# requires-python ">=3.10"). Public repository; no secrets, private index, LFS or DVC needed.
+#
+# Required-check contexts this file produces:
+#   Check Commits          commitizen check of origin/main..HEAD (shared GSP composite action)
+#   Lint Checks            ruff check (format check left out, see below)
+#   Check Documentation    mkdocs build --strict (the site docs.yml deploys from main)
+#
+# Why this does not call the shared python-test.yml workflow:
+#   - uv.lock is gitignored, so the shared `uv sync --frozen` fails ("Unable to find lockfile");
+#   - its mypy step runs `uv run mypy src`, and there is no root src/ (the [tool.mypy] `files`
+#     list in pyproject.toml names each member's src/ instead);
+#   - its "Run Tests" job runs `uv run tox`, and there is no tox configuration. tox then tries to
+#     build the root qmri-workspace project as a setuptools package and fails.
+#
+# Installing: `uv sync` at the root installs every workspace member through the dev group.
+# With no committed uv.lock, each run resolves afresh, and results then depend on the versions
+# picked on the day (mypy passes against the developer's lock but fails on a fresh resolve).
+# Once uv.lock is committed, the install steps switch to `uv sync --locked` without edits.
+#
+# Left out because they are red on main today (enable once fixed):
+#   ruff format --check (6 files with ruff 0.14.14, 15 with 0.17.0),
+#   mypy (fresh resolve: 12 errors on Python 3.10, 5 on 3.13; with the developer's local uv.lock:
+#   0 on 3.13, 7 on 3.10), pytest (2 of 457 fail on 3.10 and 3.13:
+#   tests/test_thermometry/test_multiecho.py::TestDfInitStrategies, the fixed-init fit does not
+#   alias as the tests expect).
+#
+# Triggers: push to any branch (GSP pattern) plus pull_request to main, so pull requests from
+# forks also report the required checks. Same-repository branches therefore run twice.
+# No `paths:` filters: a required check whose workflow is skipped by a path filter stays
+# "Expected — waiting for status" and blocks the merge.
+
+name: Test Workflow
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  MPLBACKEND: Agg # qmri-viz tests build matplotlib figures; no display on the runner
+  # Used only while uv.lock is not committed; matches the ruff in the current local lock.
+  RUFF_VERSION_FALLBACK: "0.14.14"
+
+jobs:
+  commit_check:
+    name: Check Commits
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: gold-standard-phantoms/github-actions/.github/actions/commit-check@v0.4.1
+
+  lint:
+    name: Lint Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Determine Ruff version
+        id: ruff
+        run: |
+          version=""
+          if [ -f uv.lock ]; then
+            version=$(grep -A2 '^name = "ruff"$' uv.lock | sed -n 's/^version = "\(.*\)"$/\1/p')
+          fi
+          echo "version=${version:-$RUFF_VERSION_FALLBACK}" >> "$GITHUB_OUTPUT"
+
+      - name: Run Ruff
+        run: uvx "ruff@${{ steps.ruff.outputs.version }}" check --target-version py310
+
+      # Enable once green on main:
+      # - name: Run Ruff Formatter
+      #   run: uvx "ruff@${{ steps.ruff.outputs.version }}" format --target-version py310 --check --diff .
+
+  docs:
+    name: Check Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      # 3.13, not 3.10: on 3.10 the resolver picks a mkdocstrings/pymdown-extensions pair that
+      # fails ("Highlight.__init__() missing 1 required positional argument: 'md'").
+      - name: Install workspace
+        run: |
+          if [ -f uv.lock ]; then uv sync --locked --python 3.13; else uv sync --python 3.13; fi
+
+      - name: Build documentation
+        run: uv run --no-sync mkdocs build --strict
+
+  # --- Enable once green on main (and add the new contexts to the required checks) ---
+  # static_analysis:
+  #   name: Static Analysis
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: astral-sh/setup-uv@v5
+  #       with:
+  #         enable-cache: true
+  #     - name: Install workspace
+  #       run: |
+  #         if [ -f uv.lock ]; then uv sync --locked --python 3.13; else uv sync --python 3.13; fi
+  #     # No arguments: [tool.mypy] in pyproject.toml lists every member's src/ (namespace package).
+  #     - name: Run MyPy
+  #       run: uv run --no-sync mypy
+  #
+  # test:
+  #   # Contexts: "Run Tests (Python 3.10)" and "Run Tests (Python 3.13)".
+  #   name: Run Tests (Python ${{ matrix.python-version }})
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       python-version: ["3.10", "3.13"] # requires-python floor and newest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: astral-sh/setup-uv@v5
+  #       with:
+  #         enable-cache: true
+  #     - name: Install workspace
+  #       run: |
+  #         if [ -f uv.lock ]; then
+  #           uv sync --locked --python ${{ matrix.python-version }}
+  #         else
+  #           uv sync --python ${{ matrix.python-version }}
+  #         fi
+  #     - name: Run tests
+  #       run: uv run --no-sync pytest
