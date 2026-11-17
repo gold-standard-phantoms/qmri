@@ -1,6 +1,8 @@
 site_name: qmri
 site_description: Pure MRI signal models, fitting algorithms, and error propagation
-site_url: https://gold-standard-phantoms.github.io/qmri
+# Two hosts: the GSP documentation server (the default, also for `mkdocs serve`) and GitHub Pages,
+# whose workflow sets SITE_URL. Canonical links, sitemap.xml and the 404 page are built from it.
+site_url: !ENV [SITE_URL, "http://docs.internal/qmri/"]
 repo_url: https://github.com/gold-standard-phantoms/qmri
 repo_name: gold-standard-phantoms/qmri
 
@@ -132,6 +134,9 @@ watch:
   - packages/qmri-dro/src
 
 extra:
+  version:
+    provider: mike      # versions.json comes from the documentation server (no selector on Pages)
+    default: latest
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/gold-standard-phantoms/qmri

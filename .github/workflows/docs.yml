@@ -1,31 +1,42 @@
-name: docs
+# Publishes the documentation to two places, each built separately because site_url differs
+# (mkdocs.yml reads it from SITE_URL):
+#   docs    the GSP documentation server, http://docs.internal/qmri/ (VPN + GSP sign-in):
+#           main publishes "dev", a tag vX.Y.Z publishes "X.Y.Z" and moves "latest"
+#   pages   GitHub Pages, https://gold-standard-phantoms.github.io/qmri/ (public, one version):
+#           main only
+# Both build with Python 3.13 (on 3.10 the resolver picks a mkdocstrings/pymdown-extensions pair
+# that fails) and without --frozen, because uv.lock is not committed (see test.yml).
+
+name: Documentation
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+  docs:
+    uses: gold-standard-phantoms/github-actions/.github/workflows/deploy-docs.yml@v0.6.0
+    with:
+      project: qmri
+      python_version: "3.13"
+      build_command: "uv run mkdocs build --strict"
+      use_private_pypi: false
+    secrets:
+      GSP_DOCS_KEY: ${{ secrets.GSP_DOCS_KEY }}
 
-      - name: Configure Git credentials
-        run: |
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          enable-cache: true
-
-      - name: Install dependencies
-        run: uv sync
-
-      - name: Deploy documentation
-        run: uv run mkdocs gh-deploy --force
+  pages:
+    if: github.ref == 'refs/heads/main'
+    uses: gold-standard-phantoms/github-actions/.github/workflows/deploy-pages.yml@v0.6.0
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    with:
+      python_version: "3.13"
+      build_command: "uv run mkdocs build --strict"
+      use_private_pypi: false
